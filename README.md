@@ -1,6 +1,13 @@
 # TRACER — OSINT Platform
 
-Site web OSINT (Open Source Intelligence) — React + Python FastAPI.
+**Plateforme de reconnaissance OSINT** qui agrège en une seule requête plus de 10 sources publiques (WHOIS, DNS, Shodan, VirusTotal, HaveIBeenPwned, crt.sh, Wayback Machine, réseaux sociaux...) pour construire un profil complet à partir d'un pseudo, d'un email, d'une IP ou d'un domaine.
+
+Frontend React/Vite avec un fond WebGL custom (Three.js) et des animations GSAP, backend Python FastAPI orchestrant les appels externes en asynchrone, authentification par sessions avec hashing PBKDF2 et rôles admin/client.
+
+<p align="center">
+  <img src="docs/screenshot-domain-recon.jpg" width="49%" alt="Résultats de reconnaissance domaine" />
+  <img src="docs/screenshot-faq.jpg" width="49%" alt="Page FAQ" />
+</p>
 
 ---
 
@@ -8,151 +15,121 @@ Site web OSINT (Open Source Intelligence) — React + Python FastAPI.
 
 | Couche | Techno |
 |---|---|
-| UI | React 18 · Vite 5 |
-| Animations | Three.js · Framer Motion · postprocessing |
-| Backend | Python 3 · FastAPI · Uvicorn (port 8000) |
-| Routing | React Router v6 |
+| Frontend | React 18 · Vite 5 · React Router v6 |
+| Animations / 3D | Three.js · @react-three/fiber · Framer Motion · GSAP · postprocessing |
+| Backend | Python 3 · FastAPI · Uvicorn |
+| Auth | Sessions token, PBKDF2-HMAC-SHA256 (200k itérations), rôles admin/client |
+| Stockage | SQLite (cache de résultats, historique, comptes) |
 
 ---
 
-## Lancer le site
+## Fonctionnalités
 
-### 1. Installer les dépendances JS
+- **Aggregator intelligent** — détecte automatiquement le type de cible (email / IP / domaine / pseudo) et lance les modules pertinents en parallèle (`asyncio.gather`)
+- **6 modules de recherche dédiés** — username (40+ plateformes façon Sherlock), email (leaks HIBP), téléphone, domaine (WHOIS/DNS/SSL/sous-domaines), IP (géoloc/ports/réputation), réseaux sociaux
+- **Recherche dark web** via l'index Ahmia (.onion)
+- **Comptes utilisateurs** avec sessions, rôles admin/client, panel d'administration
+- **Cache** des résultats (30 min) pour éviter de re-solliciter les APIs externes
+
+---
+
+## Lancer en local
+
 ```bash
-cd H:\tracer
+# 1. Dépendances JS
 npm install
-```
 
-### 2. Installer les dépendances Python
-```bash
+# 2. Dépendances Python
 pip install -r backend/requirements.txt
+
+# 3. Backend (terminal 1)
+python backend/main.py          # http://127.0.0.1:8000
+
+# 4. Frontend (terminal 2)
+npm run dev                     # http://localhost:5173
 ```
 
-### 3. Démarrer le backend
-```bash
-python backend/main.py
-```
-
-### 4. Démarrer le site (Vite)
-```bash
-npm run dev   # http://localhost:5173
-```
+Copie `.env.example` en `.env` pour activer les sources qui nécessitent une clé (Shodan, VirusTotal, HIBP...) — sans clé, ces sources sont simplement ignorées, le reste fonctionne normalement.
 
 ---
 
 ## Structure du projet
 
 ```
-H:\tracer\
-├── index.html
-├── vite.config.js
-│
+tracer/
 ├── src/
-│   ├── App.jsx              # Layout principal — Hyperspeed bg + routes
-│   ├── main.jsx
-│   ├── styles/
-│   │   └── global.css       # Variables CSS (palette beige/warm), animations
-│   │
+│   ├── App.jsx                 # Layout + routes (lazy-loaded)
+│   ├── config.js                # URL de l'API backend
+│   ├── hooks/
+│   │   └── useSearch.js         # Hook partagé par les pages de recherche
 │   ├── components/
-│   │   ├── Hyperspeed.jsx   # Animation WebGL highway (Three.js + postprocessing)
-│   │   ├── Hyperspeed.css
-│   │   ├── ContainerScroll.jsx  # Tablette 3D CSS preserve-3d + scroll Framer Motion
-│   │   ├── TabletScreen.jsx     # Contenu écran tablette — breach scanner animé
-│   │   ├── SearchBar.jsx
-│   │   ├── ResultCard.jsx   # Cartes résultat collapsibles
-│   │   ├── Loader.jsx
-│   │   ├── Sidebar.jsx      # (désactivée pour l'instant)
-│   │   └── DigitalLoom.jsx  # Animation canvas threads (non utilisée en ce moment)
-│   │
-│   └── pages/
-│       ├── Aggregator.jsx   # Page principale — auto-détecte le type de cible
-│       ├── UsernameSearch.jsx
-│       ├── EmailSearch.jsx
-│       ├── PhoneSearch.jsx
-│       ├── PersonSearch.jsx
-│       ├── SocialMedia.jsx
-│       ├── DomainRecon.jsx
-│       └── IPRecon.jsx
+│   │   ├── Hyperspeed.jsx       # Fond WebGL (Three.js + postprocessing)
+│   │   ├── ContainerScroll.jsx  # Tablette 3D CSS + scroll Framer Motion
+│   │   ├── PageHeader.jsx / ErrorNotice.jsx / ResultCard.jsx / SearchBar.jsx
+│   │   └── Navbar.jsx / OpsBoard.jsx
+│   ├── pages/
+│   │   ├── Aggregator.jsx       # Page principale — détection auto
+│   │   ├── UsernameSearch.jsx / EmailSearch.jsx / PhoneSearch.jsx
+│   │   ├── DomainRecon.jsx / IPRecon.jsx / SocialMedia.jsx
+│   │   ├── Login.jsx / Register.jsx / Profile.jsx / Admin.jsx
+│   │   └── Features.jsx / Criteria.jsx / FAQ.jsx
+│   └── utils/auth.js
 │
 └── backend/
-    ├── main.py              # FastAPI — 8 routes POST
-    ├── requirements.txt
+    ├── main.py                  # FastAPI — routes + CORS
     ├── modules/
-    │   ├── aggregator.py    # Auto-détecte email/ip/domain/username et appelle les bons modules
-    │   ├── username.py      # Scan 20+ plateformes
-    │   ├── email_lookup.py  # HIBP + analyse
-    │   ├── phone.py         # phonenumbers lib
-    │   ├── domain.py        # WHOIS + DNS + sous-domaines
-    │   ├── ip_recon.py      # Géoloc + ASN
-    │   ├── social.py        # GitHub · Reddit
-    │   └── person.py        # Identité réelle
+    │   ├── aggregator.py        # Détection de type + orchestration
+    │   ├── username.py / email_lookup.py / phone.py
+    │   ├── domain.py / ip_recon.py / social.py / darkweb.py / person.py
+    │   └── auth.py               # Register / login / sessions / rôles
     └── utils/
-        ├── helpers.py
-        └── cache.py
+        ├── db.py / cache.py     # SQLite : cache résultats + historique
+        └── authdb.py             # Hashing PBKDF2, sessions, comptes
 ```
 
 ---
 
-## Routes API (port 8000)
+## Routes API
 
-| Méthode | Route | Input | Description |
-|---|---|---|---|
-| GET | `/` | — | Health check |
-| POST | `/aggregate` | `{ query }` | Auto-détecte et agrège tout |
-| POST | `/username` | `{ query }` | Scan plateformes |
-| POST | `/email` | `{ query }` | Lookup email + leaks |
-| POST | `/phone` | `{ query }` | Infos numéro |
-| POST | `/domain` | `{ query }` | WHOIS · DNS · subs |
-| POST | `/ip` | `{ query }` | Géoloc · ASN |
-| POST | `/social` | `{ query }` | GitHub · Reddit |
-| POST | `/person` | `{ query }` | Identité |
-| POST | `/darkweb` | `{ query }` | Recherche Ahmia (.onion) |
-
----
-
-## Fonctionnement de l'Aggregator
-
-La page principale (`/aggregator`) auto-détecte le type de cible :
-
-- `user@mail.com` → **email** : lookup email + scan username (partie avant @)
-- `192.168.x.x` → **ip** : géoloc + ASN
-- `domaine.fr` → **domain** : WHOIS + DNS + IP en parallèle
-- `pseudo` → **username** : scan 20+ plateformes
-
----
-
-## UI / Thème
-
-- **Fond** : Hyperspeed (animation WebGL autoroute) — `xyDistortion`, voitures rouges à gauche, beige à droite
-- **Overlay** : `rgba(8,8,8,0.45)` pour le contraste glassmorphisme
-- **Palette** : beige chaud (`#c8a878`, `#b8956a`) sur fond très sombre
-- **Police** : Space Grotesk (UI) + JetBrains Mono (données/mono)
-- **Hero** : Tablette iPad 3D CSS `preserve-3d` — bezel aluminium, arêtes, reflet verre — scroll `rotateX 22°→0°` via Framer Motion
+| Méthode | Route | Description |
+|---|---|---|
+| POST | `/aggregate` | Détecte le type de cible et agrège toutes les sources pertinentes |
+| POST | `/username` `/email` `/phone` `/domain` `/ip` `/social` `/darkweb` | Modules dédiés |
+| GET | `/history` `/stats` | Historique et statistiques des recherches |
+| POST | `/auth/register` `/auth/login` `/auth/logout` | Authentification |
+| GET/PATCH | `/auth/me` `/auth/profile` | Profil utilisateur (session requise) |
+| GET/DELETE | `/auth/accounts` `/auth/accounts/{email}` | Gestion des comptes (admin uniquement) |
 
 ---
 
 ## Variables d'environnement
 
-Toutes les clés sont dans `H:\tracer\.env` (déjà chargé automatiquement par `main.py` via `python-dotenv`). Sans clé, la source correspondante est simplement ignorée — le reste continue de fonctionner.
+Toutes les clés sont optionnelles — sans clé, la source correspondante est simplement ignorée, le reste continue de fonctionner. Voir `.env.example`.
 
 ```env
-SHODAN_API_KEY=          # ip_recon.py — bannières/ports/vulns
-HIBP_API_KEY=             # email_lookup.py — fuites de données (payant depuis 2024)
-NUMVERIFY_API_KEY=        # phone.py — validation apilayer
-ABUSEIPDB_API_KEY=        # ip_recon.py — score de réputation abus
-VIRUSTOTAL_API_KEY=       # ip_recon.py + domain.py — détections malveillantes
-SECURITYTRAILS_API_KEY=   # domain.py — sous-domaines additionnels
+SHODAN_API_KEY=          # bannières / ports / vulnérabilités
+HIBP_API_KEY=             # fuites de données (HaveIBeenPwned, payant depuis 2024)
+NUMVERIFY_API_KEY=        # validation de numéro de téléphone
+ABUSEIPDB_API_KEY=        # score de réputation abus IP
+VIRUSTOTAL_API_KEY=       # détections malveillantes IP / domaine
+SECURITYTRAILS_API_KEY=   # sous-domaines additionnels
 ```
 
-Sources actives sans aucune clé : Sherlock-style username scan (40+ plateformes), WHOIS, DNS, SSL, crt.sh, Wayback Machine, ipapi.co, ip-api.com, HackerTarget (ports), GitHub/Reddit social, Gravatar, Ahmia (dark web).
+Sources actives sans aucune clé : scan de pseudo façon Sherlock (40+ plateformes), WHOIS, DNS, SSL, crt.sh, Wayback Machine, géolocalisation IP, ports ouverts (HackerTarget), GitHub/Reddit, Gravatar, Ahmia (dark web).
 
 ---
 
 ## Build production
 
 ```bash
-npm run build      # Build Vite → dist/
-npm run preview    # Prévisualiser le build en local
+npm run build      # → dist/
+npm run preview    # prévisualiser le build en local
 ```
 
-Le dossier `dist/` peut ensuite être déployé sur n'importe quel hébergeur statique (Vercel, Netlify...). Le backend FastAPI doit être déployé séparément et l'URL d'API mise à jour dans le frontend (actuellement `http://localhost:8000`).
+Le frontend se déploie sur n'importe quel hébergeur statique (Vercel, Netlify...). Le backend FastAPI se déploie séparément (Render, Railway, VPS...) — pense à mettre à jour `src/config.js` avec l'URL de production, et à restreindre `allow_origins` dans `backend/main.py` à ce même domaine.
+
+---
+
+## Note
+
+Projet pensé pour un usage local/personnel — les routes de recherche ne sont pas protégées par authentification. Avant tout déploiement public, il faudrait les faire passer derrière `require_session` (voir `backend/modules/auth.py`) pour éviter que des clés API tierces payantes ne soient consommées par n'importe qui.
