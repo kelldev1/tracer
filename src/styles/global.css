@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:           #c8a878;
+  --card:         rgba(255, 248, 235, 0.12);
+  --card-hover:   rgba(255, 248, 235, 0.2);
+  --border:       rgba(196, 168, 130, 0.18);
+  --border-lit:   rgba(196, 168, 130, 0.38);
+
+  --accent:       #b8956a;
+  --accent-soft:  rgba(184, 149, 106, 0.12);
+  --accent-glow:  rgba(184, 149, 106, 0.22);
+  --accent-dim:   rgba(184, 149, 106, 0.06);
+
+  --cyan:         #b8956a;
+  --cyan-soft:    rgba(184, 149, 106, 0.1);
+  --cyan-glow:    rgba(184, 149, 106, 0.18);
+
+  --green:        #a08860;
+  --green-soft:   rgba(160, 136, 96, 0.1);
+  --red:          #c47a50;
+  --red-soft:     rgba(196, 122, 80, 0.1);
+  --yellow:       #c4a060;
+  --yellow-soft:  rgba(196, 160, 96, 0.1);
+  --purple:       #9a8870;
+
+  --t1:           rgba(255, 245, 220, 0.92);
+  --t2:           rgba(220, 190, 140, 0.65);
+  --t3:           rgba(180, 150, 100, 0.45);
+
+  --text-secondary: rgba(100, 75, 45, 0.65);
+  --text-muted:     rgba(150, 118, 80, 0.48);
+  --bg-card:        rgba(255, 255, 255, 0.18);
+
+  --font:         'Space Grotesk', sans-serif;
+  --mono:         'JetBrains Mono', monospace;
+}
+
+html, body, #root {
+  height: 100%; overflow: hidden;
+  background: transparent;
+  color: var(--t1);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+input, textarea, button { font-family: var(--font); }
+input, textarea { user-select: text; }
+
+::-webkit-scrollbar { width: 2px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(184,149,106,0.3); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+@keyframes fadeUp   { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── Radix Navigation Menu ───────────────────────────────────────────────── */
+@keyframes navEnterFromLeft  { from { opacity:0; transform:translateX(-12px); } to { opacity:1; transform:translateX(0); } }
+@keyframes navEnterFromRight { from { opacity:0; transform:translateX(12px);  } to { opacity:1; transform:translateX(0); } }
+@keyframes navExitToLeft     { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(-12px); } }
+@keyframes navExitToRight    { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(12px);  } }
+@keyframes navScaleIn        { from { opacity:0; transform:scale(0.96) translateY(-4px); } to { opacity:1; transform:scale(1) translateY(0); } }
+@keyframes navScaleOut       { from { opacity:1; transform:scale(1) translateY(0); } to { opacity:0; transform:scale(0.96) translateY(-4px); } }
+
+[data-radix-navigation-menu-viewport] {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: var(--radix-navigation-menu-viewport-width);
+  height: var(--radix-navigation-menu-viewport-height);
+  overflow: hidden;
+  transition: width 0.25s ease, height 0.25s ease;
+}
+[data-radix-navigation-menu-viewport][data-state='open']   { animation: navScaleIn  0.22s ease; }
+[data-radix-navigation-menu-viewport][data-state='closed'] { animation: navScaleOut 0.18s ease; pointer-events:none; }
+
+[data-radix-navigation-menu-content][data-motion='from-start'] { animation: navEnterFromLeft  0.22s ease; }
+[data-radix-navigation-menu-content][data-motion='from-end']   { animation: navEnterFromRight 0.22s ease; }
+[data-radix-navigation-menu-content][data-motion='to-start']   { animation: navExitToLeft     0.18s ease; }
+[data-radix-navigation-menu-content][data-motion='to-end']     { animation: navExitToRight    0.18s ease; }
+@keyframes scanLine { 0% { top: 0% } 50% { top: 100% } 100% { top: 0% } }
+@keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
+@keyframes slideUp  { from { opacity:0; transform:translateY(20px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+@keyframes spin     { to { transform:rotate(360deg); } }
+@keyframes pulse    { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+@keyframes blink    { 0%,100% { opacity:1; } 50% { opacity:0; } }
