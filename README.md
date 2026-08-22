@@ -93,9 +93,9 @@ tracer/
 
 | Méthode | Route | Description |
 |---|---|---|
-| POST | `/aggregate` | Détecte le type de cible et agrège toutes les sources pertinentes |
-| POST | `/username` `/email` `/phone` `/domain` `/ip` `/social` `/darkweb` | Modules dédiés |
-| GET | `/history` `/stats` | Historique et statistiques des recherches |
+| POST | `/aggregate` | Détecte le type de cible et agrège toutes les sources pertinentes (session requise) |
+| POST | `/username` `/email` `/phone` `/domain` `/ip` `/social` `/darkweb` | Modules dédiés (session requise) |
+| GET | `/history` `/stats` | Historique et statistiques des recherches (session requise) |
 | POST | `/auth/register` `/auth/login` `/auth/logout` | Authentification |
 | GET/PATCH | `/auth/me` `/auth/profile` | Profil utilisateur (session requise) |
 | GET/DELETE | `/auth/accounts` `/auth/accounts/{email}` | Gestion des comptes (admin uniquement) |
@@ -130,6 +130,6 @@ Le frontend se déploie sur n'importe quel hébergeur statique (Vercel, Netlify.
 
 ---
 
-## Note
+## Sécurité
 
-Projet pensé pour un usage local/personnel — les routes de recherche ne sont pas protégées par authentification. Avant tout déploiement public, il faudrait les faire passer derrière `require_session` (voir `backend/modules/auth.py`) pour éviter que des clés API tierces payantes ne soient consommées par n'importe qui.
+Toutes les routes de recherche (`/aggregate`, `/username`, `/email`...) exigent une session valide — sans ça, un déploiement public laisserait n'importe qui consommer les clés API tierces payantes (Shodan, VirusTotal...) sans compte. Mots de passe hashés en PBKDF2-HMAC-SHA256 (200k itérations, salt aléatoire), tokens de session générés via `secrets.token_hex`, comparaison à temps constant (`hmac.compare_digest`).
