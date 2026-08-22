@@ -4,6 +4,8 @@
 
 Frontend React/Vite avec un fond WebGL custom (Three.js) et des animations GSAP, backend Python FastAPI orchestrant les appels externes en asynchrone, authentification par sessions avec hashing PBKDF2 et rôles admin/client.
 
+**Démo live** : [tracer-ego2.vercel.app](https://tracer-ego2.vercel.app) — connecte-toi avec `demo@tracer.app` / `demo1234`, ou crée ton propre compte (30 secondes, aucune donnée requise). Backend hébergé sur Render en plan gratuit : la première requête après une période d'inactivité peut prendre jusqu'à 50s (le service se réveille).
+
 <p align="center">
   <img src="docs/screenshot-domain-recon.jpg" width="49%" alt="Résultats de reconnaissance domaine" />
   <img src="docs/screenshot-faq.jpg" width="49%" alt="Page FAQ" />
@@ -119,14 +121,17 @@ Sources actives sans aucune clé : scan de pseudo façon Sherlock (40+ plateform
 
 ---
 
-## Build production
+## Déploiement
+
+La démo live tourne sur ce setup :
+
+- **Frontend** → Vercel, déployé depuis ce repo (preset Vite, racine du projet). Variable d'env `VITE_API_URL` pointée vers le backend.
+- **Backend** → Render (`render.yaml` à la racine, Root Directory `backend`), variable d'env `FRONTEND_URL` pointée vers l'URL Vercel pour que le CORS s'ouvre uniquement à ce domaine.
 
 ```bash
 npm run build      # → dist/
 npm run preview    # prévisualiser le build en local
 ```
-
-Le frontend se déploie sur n'importe quel hébergeur statique (Vercel, Netlify...). Le backend FastAPI se déploie séparément (Render, Railway, VPS...) — pense à mettre à jour `src/config.js` avec l'URL de production, et à restreindre `allow_origins` dans `backend/main.py` à ce même domaine.
 
 ---
 
