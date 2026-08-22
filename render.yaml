@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: tracer-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: FRONTEND_URL
+        sync: false
+      - key: ADMIN_SEED
+        sync: false
+      - key: SHODAN_API_KEY
+        sync: false
+      - key: HIBP_API_KEY
+        sync: false
+      - key: NUMVERIFY_API_KEY
+        sync: false
+      - key: ABUSEIPDB_API_KEY
+        sync: false
+      - key: VIRUSTOTAL_API_KEY
+        sync: false
+      - key: SECURITYTRAILS_API_KEY
+        sync: false

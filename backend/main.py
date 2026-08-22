@@ -28,9 +28,12 @@ init_auth_db()
 
 app = FastAPI(title="TRACER API", version="1.0.0")
 
+_extra_origin = os.getenv("FRONTEND_URL")
+_allowed_origins = ["http://localhost:5173"] + ([_extra_origin] if _extra_origin else [])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=_allowed_origins,
     allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["Content-Type", "Authorization"],
 )
@@ -174,4 +177,4 @@ def auth_delete_account(email: str, authorization: str = Header(default=None)):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
