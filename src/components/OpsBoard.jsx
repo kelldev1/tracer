@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import axios from 'axios'
 import { DateTime } from 'luxon'
 import { API_BASE_URL as API } from '../config'
+import { authHeaders } from '../utils/auth'
 
 const T = {
   border:  'rgba(200,168,120,0.18)',
@@ -72,7 +73,7 @@ export default function OpsBoard() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const { data: res } = await axios.get(`${API}/stats`, { timeout: 6000 })
+      const { data: res } = await axios.get(`${API}/stats`, { timeout: 6000, headers: authHeaders() })
       setData(res)
     } catch {
       setData({ db: 'offline', tables: [], recent: [] })

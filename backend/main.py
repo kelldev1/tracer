@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
-from fastapi import FastAPI, Query as QParam, Header
+from fastapi import FastAPI, Query as QParam, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
@@ -42,6 +42,12 @@ def _bearer_token(authorization: str | None) -> str:
     return authorization.removeprefix("Bearer ").strip()
 
 
+def require_auth(authorization: str = Header(default=None)):
+    """Dependency gating routes behind a valid session — required so a public
+    deployment doesn't let anyone burn through paid API quotas anonymously."""
+    return auth_module.require_session(_bearer_token(authorization))
+
+
 class Query(BaseModel):
     query: str
 
@@ -74,57 +80,57 @@ def root():
 
 
 @app.post("/aggregate")
-async def aggregate(q: AggregateQuery):
+async def aggregate(q: AggregateQuery, session=Depends(require_auth)):
     return await aggregate_all(q.query, q.filters)
 
 
 @app.post("/username")
-async def username(q: Query):
+async def username(q: Query, session=Depends(require_auth)):
     return await search_username(q.query)
 
 
 @app.post("/email")
-async def email(q: Query):
+async def email(q: Query, session=Depends(require_auth)):
     return await lookup_email(q.query)
 
 
 @app.post("/phone")
-async def phone(q: Query):
+async def phone(q: Query, session=Depends(require_auth)):
     return await lookup_phone(q.query)
 
 
 @app.post("/social")
-async def social(q: Query):
+async def social(q: Query, session=Depends(require_auth)):
     return await analyze_social(q.query)
 
 
 @app.post("/domain")
-async def domain(q: Query):
+async def domain(q: Query, session=Depends(require_auth)):
     return await recon_domain(q.query)
 
 
 @app.post("/ip")
-async def ip(q: Query):
+async def ip(q: Query, session=Depends(require_auth)):
     return await recon_ip(q.query)
 
 
 @app.post("/darkweb")
-async def darkweb(q: Query):
+async def darkweb(q: Query, session=Depends(require_auth)):
     return await search_darkweb(q.query)
 
 
 @app.post("/person")
-async def person(q: AggregateQuery):
+async def person(q: AggregateQuery, session=Depends(require_auth)):
     return await search_person(q.query, q.filters)
 
 
 @app.get("/history")
-def history(limit: int = QParam(50)):
+def history(limit: int = QParam(50), session=Depends(require_auth)):
     return {"history": get_history(limit)}
 
 
 @app.get("/stats")
-def stats():
+def stats(session=Depends(require_auth)):
     return get_stats()
 
 

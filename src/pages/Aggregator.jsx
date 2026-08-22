@@ -5,6 +5,7 @@ import ResultCard, { DataRow, TagBadge } from '../components/ResultCard'
 import Loader from '../components/Loader'
 import OpsBoard from '../components/OpsBoard'
 import { API_BASE_URL as API } from '../config'
+import { authHeaders } from '../utils/auth'
 
 const EMPTY = {
   prenom: '', nom: '', pseudo: '', login: '', date_naissance: '',
@@ -523,10 +524,14 @@ export default function Aggregator() {
     const query = activeFilters.map(([k, v]) => `${META[k].label}: ${v}`).join(', ')
     setLoading(true); setResults(null); setStage('results')
     try {
-      const { data } = await axios.post(`${API}/aggregate`, { query, filters })
+      const { data } = await axios.post(`${API}/aggregate`, { query, filters }, { headers: authHeaders() })
       setResults(data)
-    } catch {
-      setResults({ error: 'Backend non disponible — lance : python backend/main.py' })
+    } catch (err) {
+      setResults({
+        error: err.response?.status === 401
+          ? 'Connecte-toi pour lancer une recherche'
+          : 'Backend non disponible — lance : python backend/main.py',
+      })
     }
     setLoading(false)
   }
