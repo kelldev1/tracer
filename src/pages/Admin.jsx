@@ -131,8 +131,8 @@ export default function Admin() {
 
           <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, overflow: 'hidden', background: 'rgba(8,8,8,0.5)' }}>
             {[
-              { name: 'arail', email: 'arail@gmail.com' },
-              { name: 'razia', email: 'razia@gmail.com' },
+              { name: 'arail', email: 'admin1@example.com' },
+              { name: 'razia', email: 'admin2@example.com' },
             ].map((a, i, arr) => (
               <div key={a.email} style={{
                 display: 'grid', gridTemplateColumns: '1fr 1fr auto',

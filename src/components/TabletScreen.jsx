@@ -46,7 +46,7 @@ const BREACHES = [
   { name: 'Xsplit',           domain: 'xsplit.com',           date: '2019-07-15', records: '2 900 000', data: ['Email', 'Mot de passe (SHA-512)', 'Pseudo', 'IP'] },
 ]
 
-const TARGET = 'rdbz.dosantos@gmail.com'
+const TARGET = 'cible@example.com'
 
 function LogoImg({ domain, name, size = 56 }) {
   const [src, setSrc]       = useState(`https://logo.clearbit.com/${domain}`)
